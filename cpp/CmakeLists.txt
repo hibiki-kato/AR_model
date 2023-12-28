@@ -1,50 +1,43 @@
-# # CMakeのバージョンを設定
+# CMakeのバージョンを設定
 cmake_minimum_required(VERSION 3.14)
-# # プロジェクト名と使用する言語を設定
-project(ARModel CXX)
-add_executable(exec predict.cpp AR.cpp functions.cpp)
+project(CoupledRossler)
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_STANDARD 23)
+set(EXECUTABLE exe)
+add_executable(${EXECUTABLE} 
+    ridge.cpp
+    AR.cpp
+    shared/myFunc.cpp
+    shared/Flow.cpp
+    shared/Map.cpp
+)
 
-#includeパス
-target_include_directories(exec PUBLIC /usr/include/python3.10)
+# message(STATUS "CMAKE_VERSION:${CMAKE_VERSION}" )
+# message(STATUS "include_directories(PYTHON_INCLUDE_DIRS):${PYTHON_INCLUDE_DIRS}" )
+# message(STATUS "include_directories(Python_INCLUDE_DIRS):${Python_INCLUDE_DIRS}" )
+# message(STATUS "include_directories(PYTHON_LIBRARIES):${PYTHON_LIBRARIES}" )
+# message(STATUS "include_directories(Python_LIBRARIES):${Python_LIBRARIES}" )
+# message(STATUS "include_directories(Python_LIBRARY_DIRS):${Python_LIBRARY_DIRS}" )
 
-#libディレクトリを指定
-link_directories($/usr/lib/python3.10)
+# OSでソースが異なるので分岐
+if($ENV{OS_NAME} STREQUAL "Darwin")
+    message("Build in Mac")
+    find_package (Python 3.10 REQUIRED COMPONENTS Interpreter Development NumPy)
+    link_directories(/opt/homebrew/lib)
+    include_directories(/opt/homebrew/include ${Python_INCLUDE_DIRS})
+else()
+    message("Build in Linux")
+    find_package (Python 3 REQUIRED COMPONENTS Interpreter Development NumPy)
+    link_directories(/usr/lib)
+    include_directories(/usr/include)
+    target_link_libraries(${EXECUTABLE} PUBLIC z cnpy)
+endif()
 
 #ライブラリを作成
-add_library(cnpy SHARED "cnpy/cnpy.cpp")
+add_library(cnpy "cnpy/cnpy.cpp")
+target_link_libraries(${EXECUTABLE} PUBLIC z cnpy Python::Python Python::NumPy)
 
-#ライブラリをリンクp
-target_link_libraries(exec PUBLIC python3.10 cnpy z)
-#リンカのライブラリ検索ポリシーを設定
-if(COMMAND cmake_policy)
-cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
-
-
+#キャッシュなし
 set(CMAKE_NO_CACHE TRUE)
-set(CMAKE_C_COMPILER "gcc")
-set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#コンパイルオプション
-set(CMAKE_CXX_FLAGS "-std=c++20 -O3 -fopenmp -mtune=native -march=native -I/usr/include/python3.10")
-
-
-# cmake_minimum_required(VERSION 3.14)
-
-# project(ARModel CXX)
-
-# add_executable(exec main.cpp AR.cpp)
-
-# add_library(cnpy SHARED "cnpy/cnpy.cpp")
-
-# target_include_directories(exec PUBLIC /opt/homebrew/Cellar/python@3.10/3.10.13_1/Frameworks/Python.framework/Versions/3.10/include/python3.10)
-
-# link_directories(/opt/homebrew/Cellar/python@3.10/3.10.13_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10)
-
-# target_link_libraries(exec PUBLIC cnpy z python3.10)
-
-# set(CMAKE_NO_CACHE TRUE)
-# set(CMAKE_CXX_COMPILER "g++")
-# set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -mtune=native -march=native -I/opt/homebrew/Cellar/python@3.10/3.10.13_1/Frameworks/Python.framework/Versions/3.10/include/python3.10 -L/opt/homebrew/Cellar/python@3.10/3.10.13_1/Frameworks/Python.framework/Versions/3.10/lib/python3.10 -lpython3.10")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -mtune=native -march=native")

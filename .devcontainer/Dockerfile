@@ -11,9 +11,7 @@ RUN apt update && apt-get update && export DEBIAN_FRONTEND=noninteractive \
     python3-numpy \
     python3-matplotlib \
     msttcorefonts \
-    ffmpeg \
-    git-lfs \
-    && git lfs install
+    ffmpeg 
 
     # refresh matplotlib cache
     # && rm -r ~/.cache/matplotlib
